@@ -6,6 +6,8 @@ import ch.settlex.account.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 public class AccountService {
 
@@ -24,5 +26,13 @@ public class AccountService {
     public Account getAccount(Long id) {
         return accounts.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id));
+    }
+
+    @Transactional
+    public Account deposit(Long id, BigDecimal amount) {
+        Account account = accounts.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException(id));
+        account.credit(amount);
+        return accounts.save(account);
     }
 }

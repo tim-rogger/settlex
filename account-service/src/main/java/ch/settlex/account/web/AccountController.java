@@ -4,6 +4,8 @@ import ch.settlex.account.domain.Account;
 import ch.settlex.account.service.AccountService;
 import ch.settlex.account.web.dto.AccountResponse;
 import ch.settlex.account.web.dto.CreateAccountRequest;
+import ch.settlex.account.web.dto.DepositRequest;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,5 +31,10 @@ public class AccountController {
     @GetMapping("/{id}")
     public AccountResponse get(@PathVariable Long id) {
         return AccountResponse.from(accountService.getAccount(id));
+    }
+
+    @PostMapping("/{id}/deposit")
+    public AccountResponse deposit(@PathVariable Long id, @Valid @RequestBody DepositRequest request) {
+        return AccountResponse.from(accountService.deposit(id, request.amount()));
     }
 }
