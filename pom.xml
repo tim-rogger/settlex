@@ -12,9 +12,10 @@
     <name>settlex-parent</name>
     <description>SettleX — payment &amp; settlement ledger platform (multi-module)</description>
 
-    <!-- Sammel-Projekt: listet alle Services. `mvn verify` hier baut alle auf einmal. -->
     <modules>
         <module>account-service</module>
-        <!-- spaeter: order-service, settlement-service, notification-service -->
+        <module>order-service</module>
+        <module>settlement-service</module>
+        <module>notification-service</module>
     </modules>
 </project>
