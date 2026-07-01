@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: account-service
+
+server:
+  port: 8081
+
+# Actuator: nur Health & Info nach aussen freigeben (Rest bleibt zu = sicher)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: account-service
+    description: Accounts & double-entry ledger
