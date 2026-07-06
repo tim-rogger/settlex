@@ -1,0 +1,10 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart springboot service
+  ansible.builtin.systemd:
+    name: "{{ springboot_app_name }}.service"
+    state: restarted
+    daemon_reload: true

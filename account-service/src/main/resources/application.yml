@@ -5,12 +5,12 @@ spring:
 server:
   port: 8081
 
-# Actuator: nur Health & Info nach aussen freigeben (Rest bleibt zu = sicher)
+# Actuator: Health, Info & Prometheus nach aussen freigeben (Rest bleibt zu = sicher)
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, prometheus
   info:
     env:
       enabled: true

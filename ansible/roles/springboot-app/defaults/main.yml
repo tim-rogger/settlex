@@ -1,0 +1,33 @@
+---
+springboot_app_name: ledgerflow-service
+springboot_app_display_name: "LedgerFlow Spring Boot service"
+
+springboot_java_package: temurin-21-jdk
+springboot_java_home: /usr/lib/jvm/temurin-21-jdk
+
+springboot_service_user: "{{ springboot_app_name }}"
+springboot_service_group: "{{ springboot_app_name }}"
+
+springboot_install_dir: "/opt/{{ springboot_app_name }}"
+springboot_config_dir: "/etc/{{ springboot_app_name }}"
+springboot_log_dir: "/var/log/{{ springboot_app_name }}"
+
+springboot_jar_src: ""
+springboot_jar_name: "{{ springboot_app_name }}.jar"
+springboot_jar_dest: "{{ springboot_install_dir }}/{{ springboot_jar_name }}"
+
+springboot_server_port: 8080
+
+springboot_active_profiles: ""
+
+springboot_java_opts: "-Xms256m -Xmx512m"
+
+springboot_environment: {}
+
+springboot_health_path: "/actuator/health"
+springboot_health_start_period: 60
+
+springboot_open_firewall: true
+springboot_firewall_zone: public
+
+springboot_restart_sec: 10

@@ -1,0 +1,8 @@
+---
+springboot_java_package: temurin-21-jdk
+springboot_java_home: /usr/lib/jvm/temurin-21-jdk
+
+springboot_open_firewall: true
+springboot_firewall_zone: public
+
+springboot_java_opts: "-Xms256m -Xmx512m -XX:+UseZGC"

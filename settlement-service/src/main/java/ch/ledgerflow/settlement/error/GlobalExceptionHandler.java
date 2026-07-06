@@ -1,0 +1,17 @@
+package ch.ledgerflow.settlement.error;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SettlementNotFoundException.class)
+    public ProblemDetail handleSettlementNotFound(SettlementNotFoundException exception) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problemDetail.setTitle("Settlement not found");
+        return problemDetail;
+    }
+}

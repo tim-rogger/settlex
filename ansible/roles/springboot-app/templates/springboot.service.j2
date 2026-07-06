@@ -1,0 +1,29 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description={{ springboot_app_display_name }}
+Documentation=https://github.com/tim-rogger/ledgerflow
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ springboot_service_user }}
+Group={{ springboot_service_group }}
+EnvironmentFile={{ springboot_config_dir }}/{{ springboot_app_name }}.env
+WorkingDirectory={{ springboot_install_dir }}
+ExecStart={{ springboot_java_home }}/bin/java $JAVA_OPTS -jar {{ springboot_jar_dest }}
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec={{ springboot_restart_sec }}
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths={{ springboot_log_dir }}
+
+StandardOutput=append:{{ springboot_log_dir }}/{{ springboot_app_name }}.log
+StandardError=append:{{ springboot_log_dir }}/{{ springboot_app_name }}.log
+
+[Install]
+WantedBy=multi-user.target

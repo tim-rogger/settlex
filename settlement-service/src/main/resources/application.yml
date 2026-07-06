@@ -13,15 +13,28 @@ spring:
     properties:
       hibernate:
         format_sql: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: settlement-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
 
 server:
   port: 8083
+
+account:
+  base-url: ${ACCOUNT_BASE_URL:http://localhost:8081}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, prometheus
   info:
     env:
       enabled: true

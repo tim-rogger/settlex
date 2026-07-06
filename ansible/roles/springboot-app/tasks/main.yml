@@ -1,0 +1,107 @@
+---
+- name: Assert a jar source was provided
+  ansible.builtin.assert:
+    that:
+      - springboot_jar_src | length > 0
+    fail_msg: "springboot_jar_src must point to a locally built Spring Boot jar"
+    quiet: true
+
+- name: Install Adoptium (Temurin) yum repository
+  ansible.builtin.yum_repository:
+    name: adoptium
+    description: Eclipse Temurin (Adoptium)
+    baseurl: "https://packages.adoptium.net/artifactory/rpm/rocky/$releasever/$basearch"
+    gpgcheck: true
+    gpgkey: https://packages.adoptium.net/artifactory/api/gpg/key/public
+    enabled: true
+
+- name: Install Temurin 21 JDK
+  ansible.builtin.package:
+    name: "{{ springboot_java_package }}"
+    state: present
+
+- name: Ensure firewalld is present
+  ansible.builtin.package:
+    name: firewalld
+    state: present
+  when: springboot_open_firewall | bool
+
+- name: Create service group
+  ansible.builtin.group:
+    name: "{{ springboot_service_group }}"
+    system: true
+    state: present
+
+- name: Create service user
+  ansible.builtin.user:
+    name: "{{ springboot_service_user }}"
+    group: "{{ springboot_service_group }}"
+    system: true
+    shell: /sbin/nologin
+    home: "{{ springboot_install_dir }}"
+    create_home: false
+    state: present
+
+- name: Create application directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ springboot_service_group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "{{ springboot_install_dir }}", owner: root, mode: "0755" }
+    - { path: "{{ springboot_config_dir }}", owner: root, mode: "0750" }
+    - { path: "{{ springboot_log_dir }}", owner: "{{ springboot_service_user }}", mode: "0750" }
+
+- name: Copy application jar
+  ansible.builtin.copy:
+    src: "{{ springboot_jar_src }}"
+    dest: "{{ springboot_jar_dest }}"
+    owner: root
+    group: "{{ springboot_service_group }}"
+    mode: "0640"
+  notify: Restart springboot service
+
+- name: Deploy environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ springboot_config_dir }}/{{ springboot_app_name }}.env"
+    owner: root
+    group: "{{ springboot_service_group }}"
+    mode: "0640"
+  notify: Restart springboot service
+
+- name: Deploy systemd unit
+  ansible.builtin.template:
+    src: springboot.service.j2
+    dest: "/etc/systemd/system/{{ springboot_app_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart springboot service
+
+- name: Ensure firewalld is running
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: springboot_open_firewall | bool
+
+- name: Open service port in firewalld
+  ansible.posix.firewalld:
+    port: "{{ springboot_server_port }}/tcp"
+    zone: "{{ springboot_firewall_zone }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  when: springboot_open_firewall | bool
+
+- name: Enable and start the service
+  ansible.builtin.systemd:
+    name: "{{ springboot_app_name }}.service"
+    enabled: true
+    state: started
+    daemon_reload: true

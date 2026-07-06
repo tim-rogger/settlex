@@ -1,0 +1,160 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ledgerflow
+      POSTGRES_USER: ledgerflow
+      POSTGRES_PASSWORD: ledgerflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledgerflow -d ledgerflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: bitnami/kafka:3.7
+    environment:
+      KAFKA_CFG_NODE_ID: "0"
+      KAFKA_CFG_PROCESS_ROLES: "controller,broker"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+
+  account-service:
+    build:
+      context: ./account-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      DB_USER: ledgerflow
+      DB_PASSWORD: ledgerflow
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  order-service:
+    build:
+      context: ./order-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      DB_USER: ledgerflow
+      DB_PASSWORD: ledgerflow
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  settlement-service:
+    build:
+      context: ./settlement-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      DB_USER: ledgerflow
+      DB_PASSWORD: ledgerflow
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ACCOUNT_BASE_URL: http://account-service:8081
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      account-service:
+        condition: service_started
+
+  notification-service:
+    build:
+      context: ./notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/ledgerflow
+      DB_USER: ledgerflow
+      DB_PASSWORD: ledgerflow
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  gateway:
+    build:
+      context: ./gateway
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://account-service:8081
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://account-service:8081
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://order-service:8082
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://settlement-service:8083
+      SPRING_CLOUD_GATEWAY_ROUTES_4_URI: http://notification-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      account-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      settlement-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      account-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      settlement-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  kafka-data:
+  grafana-data:

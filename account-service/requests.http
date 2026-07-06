@@ -1,0 +1,32 @@
+### Health-Check
+GET http://localhost:8081/actuator/health
+
+### Alle Konten
+GET http://localhost:8081/accounts
+
+### Konto Alice anlegen
+POST http://localhost:8081/accounts
+Content-Type: application/json
+
+{ "ownerName": "Alice", "currency": "CHF" }
+
+### Konto Bob anlegen
+POST http://localhost:8081/accounts
+Content-Type: application/json
+
+{ "ownerName": "Bob", "currency": "CHF" }
+
+### 100 CHF auf Alice (id 1) einzahlen
+POST http://localhost:8081/accounts/1/deposit
+Content-Type: application/json
+
+{ "amount": 100.00 }
+
+### 30 CHF von Alice nach Bob ueberweisen
+POST http://localhost:8081/transfers
+Content-Type: application/json
+
+{ "idempotencyKey": "req-1", "sourceAccountId": 1, "targetAccountId": 2, "amount": 30.00, "description": "Test" }
+
+### Alice ansehen (id 1)
+GET http://localhost:8081/accounts/1

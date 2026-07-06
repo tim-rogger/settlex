@@ -1,0 +1,11 @@
+[ledgerflow]
+ledgerflow-vm-01 ansible_host=192.0.2.10
+
+[ledgerflow:vars]
+ansible_user=deploy
+ansible_python_interpreter=/usr/bin/python3
+
+db_host=192.0.2.20
+db_name=accountdb
+db_user=ledgerflow
+db_password=changeme

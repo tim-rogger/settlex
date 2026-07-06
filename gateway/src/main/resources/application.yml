@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:5173"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+        - id: accounts
+          uri: http://localhost:8081
+          predicates:
+            - Path=/accounts/**
+        - id: transfers
+          uri: http://localhost:8081
+          predicates:
+            - Path=/transfers/**
+        - id: orders
+          uri: http://localhost:8082
+          predicates:
+            - Path=/orders/**
+        - id: settlements
+          uri: http://localhost:8083
+          predicates:
+            - Path=/settlements/**
+        - id: notifications
+          uri: http://localhost:8084
+          predicates:
+            - Path=/notifications/**
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

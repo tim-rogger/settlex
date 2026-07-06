@@ -1,0 +1,19 @@
+---
+- name: Deploy a LedgerFlow Spring Boot service
+  hosts: ledgerflow
+  become: true
+  gather_facts: true
+
+  vars:
+    springboot_app_name: account-service
+    springboot_app_display_name: "LedgerFlow account-service"
+    springboot_jar_src: "{{ playbook_dir }}/../account-service/target/account-service-0.1.0-SNAPSHOT.jar"
+    springboot_server_port: 8081
+    springboot_active_profiles: postgres
+    springboot_environment:
+      DB_URL: "jdbc:postgresql://{{ db_host | default('localhost') }}:5432/{{ db_name | default('accountdb') }}"
+      DB_USER: "{{ db_user | default('ledgerflow') }}"
+      DB_PASSWORD: "{{ db_password | default('changeme') }}"
+
+  roles:
+    - springboot-app

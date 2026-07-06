@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: springboot_app
+  namespace: ledgerflow
+  author: LedgerFlow platform team
+  description: Deploy a single Spring Boot fat-jar to a RHEL/Rocky host as a systemd service
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+  galaxy_tags:
+    - springboot
+    - java
+    - systemd
+    - rhel
+    - rocky
+
+dependencies: []
